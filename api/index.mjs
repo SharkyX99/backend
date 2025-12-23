@@ -1,5 +1,6 @@
 import serverless from "serverless-http";
-import { app } from "../index.js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const { app } = require("../index.js");
 
-// Export a serverless handler for Vercel
 export default serverless(app);
