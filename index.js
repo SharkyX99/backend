@@ -17,7 +17,11 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api/users", require("./routes/users"));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Swagger at http://localhost:${PORT}/api-docs`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Swagger at http://localhost:${PORT}/api-docs`);
+  });
+}
+
+module.exports = { app };
