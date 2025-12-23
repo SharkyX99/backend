@@ -10,9 +10,22 @@ const swaggerDefinition = {
     servers: [
         {
             url: "http://localhost:3000",
+            description: 'Development server'
+        },
+        {
+            url: "https://013-backend.vercel.app",
+            description: '🌐 Production Server'
         },
     ],
     components: {
+        securitySchemes: {
+            bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                description: 'Enter: Bearer <token>'
+            }
+        },
         schemas: {
             User: {
                 type: 'object',
@@ -49,6 +62,66 @@ const swaggerDefinition = {
             },
         },
     },
+    security: [{ bearerAuth: [] }],
+    paths: {
+        "/ping": {
+            get: {
+                tags: ["Health"],
+                summary: "Ping the server and database",
+                responses: {
+                    200: {
+                        description: "OK",
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        status: { type: 'string' },
+                                        time: { type: 'string', format: 'date-time' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            get: {
+                tags: ["Health"],
+                summary: "Health summary",
+                responses: {
+                    200: { description: 'OK' }
+                }
+            }
+        },
+        "/api/data": {
+            get: {
+                tags: ["Misc"],
+                summary: "Sample payload",
+                responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'object' } } } } }
+            }
+        },
+        "/login": {
+            post: {
+                tags: ["Authentication"],
+                summary: "User login",
+                requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Login' } } } },
+                responses: {
+                    200: { description: 'OK', content: { 'application/json': { schema: { type: 'object', properties: { token: { type: 'string' }, message: { type: 'string' } } } } } },
+                    400: { description: 'Bad Request' },
+                    401: { description: 'Unauthorized' }
+                }
+            }
+        },
+        "/logout": {
+            post: {
+                tags: ["Authentication"],
+                summary: "User logout",
+                responses: { 200: { description: 'OK' }, 401: { description: 'No token' }, 403: { description: 'Invalid token' } }
+            }
+        }
+    }
 };
 
 const options = {

@@ -847,16 +847,16 @@ app.post('/login', async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: 'username and password required' });
   try {
     const [rows] = await db.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
-    if (!rows || rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!rows || rows.length === 0) return res.status(401).json({ error: 'User not found' });
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!match) return res.status(401).json({ error: 'Invalid password' });
 
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '2h' });
     const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
     activeTokens.set(user.id, token);
 
-    return res.json({ token, user: { id: user.id, username: user.username, firstname: user.firstname, fullname: user.fullname, lastname: user.lastname, status: user.status } });
+    return res.json({ token, message: 'Login successful', user: { id: user.id, username: user.username } });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
