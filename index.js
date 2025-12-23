@@ -18,32 +18,68 @@ app.get("/api-docs", (req, res) => {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BackEnd API Docs</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--brand:#0b74ff;--muted:#6b7280;--bg:#f7fafc}
+    :root{--brand:#0b74ff;--accent:#0b6bff;--muted:#6b7280;--bg:#f6f9fc;--card:#ffffff}
+    html,body{height:100%}
     html{box-sizing:border-box;overflow-y:scroll}
     *,*:before,*:after{box-sizing:inherit}
-    body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Helvetica,Arial}
-    /* hide built-in topbar, we'll use a compact custom header */
+    body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Helvetica,Arial;color:#0f172a}
+    /* hide built-in topbar, use our compact header */
     .swagger-ui .topbar{display:none}
-    /* custom header */
-    .doc-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #e6edf8}
-    .doc-logo{width:40px;height:40px;border-radius:6px;background:linear-gradient(135deg,var(--brand),#6a9cff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-    .doc-title{font-size:16px;font-weight:600;color:#0f172a}
-    .doc-sub{font-size:12px;color:var(--muted)}
-    #swagger-ui{margin:20px}
-    /* tweak primary color used by Swagger UI */
+
+    /* Header */
+    .doc-header{display:flex;align-items:center;gap:14px;padding:16px 24px;background:linear-gradient(90deg,rgba(11,116,255,0.06),rgba(106,156,255,0.03));border-bottom:1px solid rgba(15,23,42,0.04)}
+    .doc-logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#6a9cff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+    .doc-title{font-size:18px;font-weight:700}
+    .doc-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+    /* Layout */
+    .doc-shell{display:flex;gap:24px;padding:20px;max-width:1200px;margin:12px auto}
+    #swagger-ui{flex:1;background:transparent;border-radius:12px;padding:18px}
+    .doc-aside{width:260px;flex:0 0 260px}
+    .doc-card{background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);padding:12px}
+
+    /* Floating actions */
+    .fab{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px}
+    .fab a{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:var(--brand);color:#fff;text-decoration:none;box-shadow:0 6px 18px rgba(11,116,255,0.18)}
+
+    /* Footer */
+    .doc-footer{text-align:center;padding:14px;color:var(--muted);font-size:13px}
+
+    /* Swagger UI adjustments */
+    .swagger-ui .info {padding:8px 0}
     .scheme-container .schemes, .opblock-summary-method {background:var(--brand)!important}
+    .opblock.opblock-get .opblock-summary-method {background:#0b74ff;border-radius:6px;color:#fff}
   </style>
 </head>
-<body>
+  <body>
   <header class="doc-header">
-    <div class="doc-logo">API</div>
+    <div class="doc-logo" aria-hidden>API</div>
     <div>
       <div class="doc-title">BackEnd API — Documentation</div>
       <div class="doc-sub">v1.0 • User management & authentication</div>
     </div>
   </header>
-  <div id="swagger-ui"></div>
+  <div class="doc-shell">
+    <aside class="doc-aside">
+      <div class="doc-card">
+        <strong>Quick Links</strong>
+        <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted)">
+          <li><a href="/">Home</a></li>
+          <li><a href="/ping">Ping</a></li>
+          <li><a href="/api-docs">Docs</a></li>
+        </ul>
+        
+      </div>
+    </aside>
+    <main class="doc-main">
+      <div id="swagger-ui" class="doc-card"></div>
+    </main>
+  </div>
+  <div class="fab" aria-hidden>
+  </div>
+  <footer class="doc-footer">BackEnd API</footer>
   <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
   <script>
@@ -58,6 +94,13 @@ app.get("/api-docs", (req, res) => {
         plugins: [SwaggerUIBundle.plugins.DownloadUrl],
         layout: 'StandaloneLayout'
       });
+
+      // small enhancement: focus search input for keyboard users
+      const tryFocus = () => {
+        const el = document.querySelector('.search__field') || document.querySelector('input[type="search"]');
+        if (el) el.setAttribute('placeholder','Search endpoints...');
+      };
+      setTimeout(tryFocus, 300);
     };
   </script>
 </body>
