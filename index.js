@@ -64,13 +64,25 @@ app.get("/api-docs", (req, res) => {
   <div class="doc-shell">
     <aside class="doc-aside">
       <div class="doc-card">
-        <strong>Quick Links</strong>
-        <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted)">
-          <li><a href="/">Home</a></li>
-          <li><a href="/ping">Ping</a></li>
-          <li><a href="/api-docs">Docs</a></li>
-        </ul>
-        
+        <strong>Quick Start</strong>
+        <div style="margin-top:8px;font-size:13px;color:var(--muted);line-height:1.4">
+          <div><code>POST /login</code> — obtain a token</div>
+          <pre style="background:#f3f5f9;padding:8px;border-radius:6px;margin:8px 0;font-size:12px">curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user_1","password":"pass1#123"}'</pre>
+          <div><code>GET /api/users</code> — list users (Auth required)</div>
+          <pre style="background:#f3f5f9;padding:8px;border-radius:6px;margin:8px 0;font-size:12px">curl -H "Authorization: Bearer &lt;TOKEN&gt;" http://localhost:3000/api/users</pre>
+        </div>
+        <hr style="margin:12px 0;border:none;border-top:1px solid rgba(15,23,42,0.06)">
+        <strong>Schemas</strong>
+        <div style="margin-top:8px;font-size:13px;color:var(--muted)">
+          Click to jump to schema:
+          <ul style="margin:6px 0 0;padding-left:18px;color:var(--muted)">
+            <li><a href="#/components/schemas/User">User</a></li>
+            <li><a href="#/components/schemas/NewUser">NewUser</a></li>
+            <li><a href="#/components/schemas/Login">Login</a></li>
+          </ul>
+        </div>
       </div>
     </aside>
     <main class="doc-main">

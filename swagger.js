@@ -12,6 +12,43 @@ const swaggerDefinition = {
             url: "http://localhost:3000",
         },
     ],
+    components: {
+        schemas: {
+            User: {
+                type: 'object',
+                properties: {
+                    id: { type: 'integer', example: 1 },
+                    firstname: { type: 'string', example: 'Seed' },
+                    fullname: { type: 'string', example: 'Seed User' },
+                    lastname: { type: 'string', example: 'User' },
+                    username: { type: 'string', example: 'seed_user' },
+                    status: { type: 'string', example: 'active' },
+                    created_at: { type: 'string', format: 'date-time' },
+                    updated_at: { type: 'string', format: 'date-time' },
+                },
+            },
+            NewUser: {
+                type: 'object',
+                required: ['firstname', 'fullname', 'lastname', 'username', 'password', 'status'],
+                properties: {
+                    firstname: { type: 'string' },
+                    fullname: { type: 'string' },
+                    lastname: { type: 'string' },
+                    username: { type: 'string' },
+                    password: { type: 'string' },
+                    status: { type: 'string', example: 'active' },
+                },
+            },
+            Login: {
+                type: 'object',
+                required: ['username', 'password'],
+                properties: {
+                    username: { type: 'string' },
+                    password: { type: 'string' },
+                },
+            },
+        },
+    },
 };
 
 const options = {
