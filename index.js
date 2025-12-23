@@ -1,11 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
 const specs = require("./swagger");
 const db = require("./config/db");
+const SECRET_KEY = process.env.JWT_SECRET;
 
 app.use(express.json());
 app.use(cors());
@@ -826,8 +829,58 @@ app.get('/ping', async (req, res) => {
   }
 });
 
-// Routes
-app.use("/api/users", require("./routes/users"));
+// Health endpoint: server + database health summary
+app.get('/health', async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT 1 as alive, NOW() as now");
+    const dbOk = rows && rows.length ? true : false;
+    const time = rows && rows[0] && rows[0].now ? rows[0].now : new Date();
+    res.json({ server: 'ok', database: dbOk ? 'ok' : 'down', time });
+  } catch (err) {
+    res.status(500).json({ server: 'ok', database: 'down', error: err.message });
+  }
+});
+
+// Auth endpoints
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: 'username and password required' });
+  try {
+    const [rows] = await db.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
+    if (!rows || rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '2h' });
+    const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
+    activeTokens.set(user.id, token);
+
+    return res.json({ token, user: { id: user.id, username: user.username, firstname: user.firstname, fullname: user.fullname, lastname: user.lastname, status: user.status } });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
+    const stored = activeTokens.get(decoded.id);
+    if (stored && stored === token) {
+      activeTokens.delete(decoded.id);
+      return res.json({ status: 'ok' });
+    }
+    return res.status(403).json({ error: 'Session not found' });
+  });
+});
+
+// Routes (users mounted at /users)
+app.use("/users", require("./routes/users"));
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
