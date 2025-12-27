@@ -931,14 +931,18 @@ const usersRouter = require("./routes/users");
 app.use("/api/users", usersRouter);
 app.use("/users", usersRouter);
 
-// Start server
+// Start server only when this file is executed directly (not when required)
 const PORT = process.env.PORT || 3000;
-if (process.env.NODE_ENV !== "test") {
+if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`✅ Server is running on port ${PORT}`);
     console.log(`📄 Swagger UI: http://localhost:${PORT}/api-docs`);
   });
 }
 
-// Export app for tests and external use
-module.exports = { app };
+// Export the app for serverless wrappers and tests.
+// Provide both default export (module.exports = app) and a named property
+// so consumers using either `require('../index')` or `const { app } = require('../index')`
+// will work.
+module.exports = app;
+module.exports.app = app;
