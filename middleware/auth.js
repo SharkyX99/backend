@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const SECRET_KEY = process.env.JWT_SECRET;
-const activeTokens =
-    globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
+const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
 
 function getActiveToken(userId) {
     return activeTokens.get(userId);
@@ -22,9 +21,7 @@ function verifyToken(req, res, next) {
         }
         const storedToken = getActiveToken(user.id);
         if (!storedToken || storedToken !== token) {
-            return res
-                .status(403)
-                .json({ error: "Session revoked, please login again" });
+            return res.status(403).json({ error: "Session revoked, please login again" });
         }
         req.user = user;
         next();

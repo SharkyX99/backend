@@ -13,6 +13,125 @@ const SECRET_KEY = process.env.JWT_SECRET;
 app.use(express.json());
 app.use(cors());
 
+// Active tokens map (in-memory for demo/testing)
+globalThis.__activeTokens = globalThis.__activeTokens ?? new Map();
+
+/**
+ * @openapi
+ * /ping:
+ *   get:
+ *     tags: [Health]
+ *     summary: Server heartbeat and DB time
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+app.get("/ping", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT NOW() AS now");
+    const now = rows && rows[0] && rows[0].now ? rows[0].now : new Date();
+    res.json({ status: "ok", time: now });
+  } catch (err) {
+    res.status(500).json({ status: "error", error: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     tags: [Health]
+ *     summary: Root server info
+ *     responses:
+ *       200:
+ *         description: Server running
+ */
+app.get("/", (req, res) => {
+  res.send("Server is running — BackEnd API");
+});
+
+/**
+ * @openapi
+ * /login:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: User login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Login'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username) return res.status(400).json({ error: "username is required" });
+
+  try {
+    const [rows] = await db.query(
+      "SELECT id, fullname, lastname, password FROM tbl_users WHERE username = ?",
+      [username]
+    );
+    const user = (rows && rows[0]) || null;
+    if (!user) return res.status(401).json({ error: "User not found" });
+
+    const ok = await bcrypt.compare(password || "", user.password || "");
+    if (!ok) return res.status(401).json({ error: "Invalid password" });
+
+    const token = jwt.sign({ id: user.id }, SECRET_KEY || "secret", { expiresIn: "1h" });
+    globalThis.__activeTokens.set(user.id, token);
+    res.json({ token, message: "Login successful" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+/**
+ * @openapi
+ * /logout:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: User logout
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ */
+app.post("/logout", (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const payload = jwt.verify(token, SECRET_KEY || "secret");
+    if (payload && payload.id) {
+      globalThis.__activeTokens.delete(payload.id);
+    }
+    res.json({ message: "Logout successful" });
+  } catch (err) {
+    return res.status(403).json({ error: "Invalid or expired token" });
+  }
+});
+
+/**
+ * @openapi
+ * /api/data:
+ *   get:
+ *     tags: [Misc]
+ *     summary: Test CORS endpoint
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+app.get("/api/data", (req, res) => {
+  res.json({ message: "Hello, CORS!" });
+});
+
 // Serve Swagger UI using CDN assets (Vercel-friendly)
 app.get("/api-docs", (req, res) => {
   const swaggerHtml = `<!DOCTYPE html>
@@ -801,93 +920,25 @@ app.get("/api-docs", (req, res) => {
       }
     });
   </script>
-</body>
-</html>`;
+  </body>
+  </html>`;
   res.setHeader("Content-Type", "text/html");
   res.send(swaggerHtml);
 });
 
-// Basic server heartbeat
-app.get('/', (req, res) => {
-  res.status(200).send('Server is running');
-});
+// Mount users router (CommonJS)
+const usersRouter = require("./routes/users");
+app.use("/api/users", usersRouter);
+app.use("/users", usersRouter);
 
-// Simple sample payload used by integration tests
-app.get('/api/data', (req, res) => {
-  res.json({ message: 'Hello, CORS!' });
-});
-
-// Ping: returns server + database time
-app.get('/ping', async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT NOW() as now");
-    let time = rows && rows[0] && rows[0].now ? rows[0].now : new Date();
-    if (time instanceof Date) time = time.toISOString();
-    res.json({ status: 'ok', time });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-});
-
-// Health endpoint: server + database health summary
-app.get('/health', async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT 1 as alive, NOW() as now");
-    const dbOk = rows && rows.length ? true : false;
-    const time = rows && rows[0] && rows[0].now ? rows[0].now : new Date();
-    res.json({ server: 'ok', database: dbOk ? 'ok' : 'down', time });
-  } catch (err) {
-    res.status(500).json({ server: 'ok', database: 'down', error: err.message });
-  }
-});
-
-// Auth endpoints
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: 'username and password required' });
-  try {
-    const [rows] = await db.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
-    if (!rows || rows.length === 0) return res.status(401).json({ error: 'User not found' });
-    const user = rows[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid password' });
-
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '2h' });
-    const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
-    activeTokens.set(user.id, token);
-
-    return res.json({ token, message: 'Login successful', user: { id: user.id, username: user.username } });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/logout', (req, res) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    const activeTokens = globalThis.__activeTokens ?? (globalThis.__activeTokens = new Map());
-    const stored = activeTokens.get(decoded.id);
-    if (stored && stored === token) {
-      activeTokens.delete(decoded.id);
-      return res.json({ status: 'ok' });
-    }
-    return res.status(403).json({ error: 'Session not found' });
-  });
-});
-
-// Routes (users mounted at /users)
-app.use("/users", require("./routes/users"));
-
+// Start server
 const PORT = process.env.PORT || 3000;
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Swagger at http://localhost:${PORT}/api-docs`);
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`📄 Swagger UI: http://localhost:${PORT}/api-docs`);
   });
 }
 
+// Export app for tests and external use
 module.exports = { app };

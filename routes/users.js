@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const bcrypt = require('bcrypt'); //เพิ่ม bcrypt
-const verifyToken = require('../middleware/auth'); //Verify Token
+const bcrypt = require("bcrypt");
+const verifyToken = require("../middleware/auth");
 
 /**
  * @openapi
