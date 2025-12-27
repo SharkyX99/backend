@@ -11,7 +11,6 @@ function baseDefinition() {
         },
         servers: [
             { url: "http://localhost:3000", description: "Development server" },
-            { url: "https://013-backend.vercel.app", description: "🌐 Production Server" },
         ],
         components: {
             securitySchemes: {

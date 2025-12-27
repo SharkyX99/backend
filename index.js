@@ -715,21 +715,7 @@ app.get("/api-docs", (req, res) => {
     </div>
   </header>
 
-  <div class="doc-shell">
-    <aside class="doc-aside">
-      <div class="doc-card" style="margin-bottom: 20px;">
-        <strong>🔐 Authentication</strong>
-        <div style="margin-top:12px;font-size:13px;color:var(--text-secondary);line-height:1.8">
-          <p style="margin-bottom:12px;color:var(--text-primary)">Most endpoints require JWT authentication. To authenticate:</p>
-          <ol style="margin:0;padding-left:20px;list-style:decimal">
-            <li style="margin:8px 0">Call <code>POST /login</code> with your credentials</li>
-            <li style="margin:8px 0">Copy the returned <code>token</code></li>
-            <li style="margin:8px 0">Click the <strong>🔓 Authorize</strong> button above</li>
-            <li style="margin:8px 0">Enter: <code>Bearer &lt;your-token&gt;</code></li>
-          </ol>
-        </div>
-      </div>
-
+      
       <div class="doc-card" style="margin-bottom: 20px;">
         <strong>🌐 Servers</strong>
         <div style="margin-top:12px;font-size:13px;line-height:1.6">
