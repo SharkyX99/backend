@@ -2,236 +2,252 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/", (req, res) => {
-    res.setHeader("Content-Type", "text/html");
-    res.send(`<!DOCTYPE html>
+  res.setHeader("Content-Type", "text/html");
+  res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>011 Backend API</title>
+<title>M Performance Backend</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-family:Arial, sans-serif;
-  color:#e5e7eb;
-
-  /* M Performance Background */
-  background:
-    linear-gradient(120deg,#00AEEF22,transparent 40%),
-    linear-gradient(-120deg,#003A8F22,transparent 40%),
-    repeating-linear-gradient(
-      45deg,
-      #050505,
-      #050505 10px,
-      #070707 10px,
-      #070707 20px
-    );
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Card */
-.card{
-  padding:64px;
-  border-radius:26px;
+body {
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
   background:
-    linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
-  backdrop-filter:blur(18px);
+    radial-gradient(circle at top left, #003cff66, transparent 40%),
+    radial-gradient(circle at bottom right, #ff004c66, transparent 45%),
+    linear-gradient(135deg, #04050a, #0b0f1a);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  width: 920px;
+  padding: 50px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0a0e1a, #05070d);
   box-shadow:
-    0 40px 90px rgba(0,0,0,.85),
-    inset 0 0 0 1px rgba(255,255,255,.12);
-  max-width:960px;
-  width:100%;
-  position:relative;
+    0 0 40px #000,
+    inset 0 0 40px #000;
 }
 
-/* M stripe */
-.card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:26px;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 20%,
-      #00AEEF44,
-      #003A8F44,
-      #ffffff22,
-      transparent 80%
-    );
-  pointer-events:none;
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
 }
 
-/* Title */
-h1{
-  margin:0;
-  font-size:44px;
-  font-weight:800;
-  background:linear-gradient(135deg,#00AEEF,#ffffff);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+.logo {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.logo span {
+  color: #00e5ff;
 }
 
 /* STATUS */
-.status{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin:28px 0 44px;
-  font-weight:800;
-  letter-spacing:.6px;
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
-.dot{
-  width:14px;
-  height:14px;
-  border-radius:50%;
-  background:#555;
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00ff6a, #008f3a);
+  box-shadow: 0 0 10px #00ff6a, 0 0 22px #00ff6a;
+  animation: pulse 1.2s infinite;
 }
 
-/* ONLINE */
-.online{
-  background:#00FF6A;
-  box-shadow:0 0 10px #00FF6A,0 0 26px rgba(0,255,106,.9);
-  animation:pulseGreen 1.2s infinite;
+.status-text {
+  color: #00e5ff;
+  animation: flicker 2s infinite;
 }
 
-/* OFFLINE */
-.offline{
-  background:#FF2E2E;
-  box-shadow:0 0 10px #FF2E2E,0 0 26px rgba(255,46,46,.9);
-  animation:pulseRed 1.2s infinite;
+/* MAIN */
+.main {
+  margin-top: 30px;
 }
 
-@keyframes pulseGreen{
-  0%{box-shadow:0 0 0 rgba(0,255,106,.8)}
-  70%{box-shadow:0 0 22px rgba(0,255,106,1)}
-  100%{box-shadow:0 0 0 rgba(0,255,106,.8)}
-}
-@keyframes pulseRed{
-  0%{box-shadow:0 0 0 rgba(255,46,46,.8)}
-  70%{box-shadow:0 0 22px rgba(255,46,46,1)}
-  100%{box-shadow:0 0 0 rgba(255,46,46,.8)}
+.title {
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
-/* Actions */
-.actions{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:32px;
+.subtitle {
+  margin-top: 12px;
+  font-size: 16px;
+  color: #aaa;
+  letter-spacing: 1px;
 }
 
-/* Buttons */
-.action{
-  position:relative;
-  padding:28px;
-  border-radius:22px;
-  display:flex;
-  gap:22px;
-  align-items:center;
-  text-decoration:none;
-  color:#e5e7eb;
-  background:
-    linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.18);
-  overflow:hidden;
-  transition:.35s ease;
+/* ACTIONS */
+.actions {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
 }
 
-/* throttle sweep */
-.action::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
+.action {
+  position: relative;
+  padding: 26px;
+  border-radius: 16px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  background: linear-gradient(135deg, #0c1224, #060914);
+  border: 1px solid #1b2445;
+  overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.action::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
     120deg,
-    transparent 35%,
-    rgba(0,174,239,.45),
-    rgba(255,255,255,.25),
-    transparent 70%
+    transparent,
+    #00e5ff55,
+    transparent
   );
-  transform:translateX(-100%);
+  transform: translateX(-100%);
+  transition: .6s;
 }
 
-.action:hover::before{
-  transform:translateX(100%);
-  transition:.8s ease;
+.action:hover::before {
+  transform: translateX(100%);
 }
 
-.action:hover{
-  transform:translateY(-10px) scale(1.03);
-  box-shadow:0 30px 80px rgba(0,0,0,.9);
+.action:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 0 25px #00e5ff55,
+    0 0 60px #003cff55;
 }
 
-.icon{
-  width:64px;
-  height:64px;
-  border-radius:18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:30px;
+/* ICON */
+.icon svg {
+  width: 44px;
+  height: 44px;
+  fill: #00e5ff;
+  filter:
+    drop-shadow(0 0 8px #00e5ff)
+    drop-shadow(0 0 20px #003cff);
 }
 
-.docs .icon{
-  background:#00AEEF;
-  box-shadow:0 0 28px rgba(0,174,239,.9);
+/* TEXT */
+.action h3 {
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.ping .icon{
-  background:#FF2E2E;
-  box-shadow:0 0 28px rgba(255,46,46,.9);
+.action span {
+  font-size: 13px;
+  color: #9aa4ff;
 }
 
-h3{margin:0 0 6px}
-span{font-size:13px;color:#94a3b8}
+/* ANIMATIONS */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: .6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes flicker {
+  0%,100% { opacity: 1; }
+  50% { opacity: .65; }
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 50px;
+  text-align: right;
+  font-size: 12px;
+  color: #666;
+  letter-spacing: 2px;
+}
 </style>
 </head>
 
 <body>
-<div class="card">
-  <h1>011 Backend API</h1>
+<div class="container">
 
-  <div class="status">
-    <span class="dot" id="status-dot"></span>
-    <span id="status-text">INITIALIZING M POWER…</span>
+  <div class="header">
+    <div class="logo">SYSTEM <span>M</span></div>
+    <div class="status">
+      <span class="dot"></span>
+      <span class="status-text">SYSTEM ONLINE • M PER</span>
+    </div>
   </div>
 
-  <div class="actions">
-    <a class="action docs" href="/api-docs">
-      <div class="icon">📘</div>
-      <div>
-        <h3>API Documentation</h3>
-        <span>Swagger Interface</span>
-      </div>
-    </a>
+  <div class="main">
+    <div class="title">
+      Backend Control Unit<br/>
+      <span style="color:#ff004c">High Performance Mode</span>
+    </div>
+    <div class="subtitle">
+    • API ENGINE • DATABASE CORE
+    </div>
 
-    <a class="action ping" href="/ping">
-      <div class="icon">💓</div>
-      <div>
-        <h3>Health Check</h3>
-        <span>System Diagnostics</span>
-      </div>
-    </a>
+    <div class="actions">
+      <a class="action" href="/api-docs">
+        <div class="icon">
+          <svg viewBox="0 0 24 24">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v6c0 1.7 4 3 9 3s9-1.3 9-3V5"/>
+            <path d="M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Database Control</h3>
+          <span>Swagger API Interface</span>
+        </div>
+      </a>
+
+      <a class="action" href="/ping">
+        <div class="icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div>
+          <h3>System Ping</h3>
+          <span>Health & Latency Check</span>
+        </div>
+      </a>
+    </div>
   </div>
+
+  <div class="footer">
+    ENGINE MODE • M PER
+  </div>
+
 </div>
-
-<script>
-fetch("/ping")
-  .then(r => { if(!r.ok) throw 0; })
-  .then(() => {
-    statusDot.classList.add("online");
-    statusText.innerText = "SYSTEM ONLINE • M PERFORMANCE";
-  })
-  .catch(() => {
-    statusDot.classList.add("offline");
-    statusText.innerText = "SYSTEM OFFLINE • CHECK ENGINE";
-  });
-</script>
 </body>
 </html>`);
 });
