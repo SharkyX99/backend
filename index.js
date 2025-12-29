@@ -46,9 +46,9 @@ app.get("/ping", async (req, res) => {
  *       200:
  *         description: Server running
  */
-app.get("/", (req, res) => {
-  res.send("Server is running — BackEnd API");
-});
+const homeRouter = require("./routes/home");
+app.use("/", homeRouter);
+
 
 /**
  * @openapi
