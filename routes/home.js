@@ -19,18 +19,47 @@ router.get("/", (req, res) => {
   box-sizing: border-box;
 }
 
+/* ====== ONLY BACKGROUND CHANGED ====== */
 body {
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
+
   background:
-    radial-gradient(circle at top left, #003cff66, transparent 40%),
-    radial-gradient(circle at bottom right, #ff004c66, transparent 45%),
-    linear-gradient(135deg, #04050a, #0b0f1a);
+    /* M Light Blue - Top Left */
+    radial-gradient(
+      circle at 18% 22%,
+      rgba(80, 190, 255, 0.45),
+      transparent 50%
+    ),
+
+    /* M Performance Blue - Center */
+    radial-gradient(
+      circle at 48% 38%,
+      rgba(0, 95, 200, 0.40),
+      transparent 58%
+    ),
+
+    /* M Red - Bottom Right (quiet) */
+    radial-gradient(
+      circle at 80% 72%,
+      rgba(200, 25, 45, 0.28),
+      transparent 55%
+    ),
+
+    /* Base dark */
+    linear-gradient(
+      135deg,
+      #05060a 0%,
+      #0b1220 45%,
+      #07090f 100%
+    );
+
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+/* =================================== */
 
 .container {
   width: 920px;
@@ -210,7 +239,7 @@ body {
       <span style="color:#ff004c">High Performance Mode</span>
     </div>
     <div class="subtitle">
-    • API ENGINE • DATABASE CORE
+      • API ENGINE • DATABASE CORE
     </div>
 
     <div class="actions">
