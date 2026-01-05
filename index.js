@@ -1,17 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 
 const app = express();
 
-const specs = require("./swagger");
-const db = require("./config/db");
-const SECRET_KEY = process.env.JWT_SECRET;
-
+app.use(cors({
+  origin: "*",
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
-app.use(cors());
+
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/users"));
 
 // Active tokens map (in-memory for demo/testing)
 globalThis.__activeTokens = globalThis.__activeTokens ?? new Map();
@@ -931,14 +931,7 @@ const usersRouter = require("./routes/users");
 app.use("/api/users", usersRouter);
 app.use("/users", usersRouter);
 
-// Start server only when this file is executed directly (not when required)
-const PORT = process.env.PORT || 3000;
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log(`📄 Swagger UI: http://localhost:${PORT}/api-docs`);
-  });
-}
+
 
 // Export the app for serverless wrappers and tests.
 // Provide both default export (module.exports = app) and a named property

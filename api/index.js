@@ -1,22 +1,19 @@
-const serverless = require('serverless-http');
-const { app } = require('../index.js');
+const express = require("express");
+const cors = require("cors");
 
-// Wrap the serverless handler to add simple invocation and error logging
-const handler = serverless(app);
+const app = express();
 
-module.exports = async (req, res) => {
-    try {
-        console.log('Vercel function invoked:', req.method, req.url);
-        return await handler(req, res);
-    } catch (err) {
-        console.error('Vercel handler error:', err && err.stack ? err.stack : err);
-        // Ensure a 500 is returned on unexpected errors
-        try {
-            res.statusCode = 500;
-            res.setHeader('Content-Type', 'text/plain');
-            res.end('Internal Server Error');
-        } catch (e) {
-            // ignore
-        }
-    }
-};
+// 🔥 ใส่ CORS ตรงนี้ (ก่อน routes)
+app.use(cors({
+    origin: "*", // หรือ "https://your-frontend.vercel.app"
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.use(express.json());
+
+// routes
+app.use("/api/auth", require("../routes/auth"));
+app.use("/api/users", require("../routes/users"));
+
+module.exports = app;
