@@ -14,7 +14,7 @@ app.use(cors({
 
 /* ---------- Routes ---------- */
 const usersRouter = require("./routes/users");
-app.use("/api/users", usersRouter);
+app.use("/api/users", require("./routes/users"));
 
 /* ---------- Swagger ---------- */
 const swaggerDefinition = {

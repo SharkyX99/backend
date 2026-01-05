@@ -11,14 +11,11 @@ function baseDefinition() {
         },
         servers: [
             {
-                url: "http://localhost:3000",
-                description: "Local server",
-            },
-            {
                 url: "https://011-backend.vercel.app",
-                description: "Vercel server",
+                description: "Production (Vercel)",
             },
         ],
+
 
         components: {
             securitySchemes: {
