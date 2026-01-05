@@ -1,40 +1,43 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const db = require("../config/db");
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: ระบบยืนยันตัวตน
+ */
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: 🔐 Login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login success
+ */
+router.post("/login", login);
 
-
-const router = express.Router();
-
-router.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-
-    const [rows] = await db.query(
-        "SELECT * FROM users WHERE username = ?",
-        [username]
-    );
-
-    if (rows.length === 0) {
-        return res.status(401).json({ message: "User not found" });
-    }
-
-    const user = rows[0];
-
-    // ตัวอย่าง (ถ้า hash จริงให้ใช้ bcrypt)
-    if (user.password !== password) {
-        return res.status(401).json({ message: "Password incorrect" });
-    }
-
-    const jwt = require("jsonwebtoken");
-
-    const token = jwt.sign(
-        { id: user.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "2h" }
-    );
-
-
-    res.json({ token });
-});
-
-module.exports = router;
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: 🚪 Logout
+ *     tags: [Auth]
+ *     security:
+ *       - Auth: []
+ *     responses:
+ *       200:
+ *         description: Logout success
+ */
+router.post("/logout", authMiddleware, logout);
