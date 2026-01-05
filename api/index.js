@@ -1,40 +1,22 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
+const serverless = require('serverless-http');
+const { app } = require('../index.js');
 
-const app = express();
+// Wrap the serverless handler to add simple invocation and error logging
+const handler = serverless(app);
 
-// ตรวจ JWT_SECRET
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET missing");
-}
-
-app.use(cors({ origin: "*", allowedHeaders: ["Content-Type", "Authorization"] }));
-app.use(express.json());
-
-// ROOT (จำเป็นสำหรับ Vercel)
-app.get("/", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        message: "Backend API running on Vercel",
-    });
-});
-
-// AUTH & USERS
-app.use("/api/auth", require("../routes/auth"));
-app.use("/api/users", require("../routes/users"));
-
-// ตัวอย่าง ping
-app.get("/ping", (req, res) => res.json({ status: "ok" }));
-
-
-app.get("/", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        message: "Backend API running on Vercel",
-    });
-});
-
-
-module.exports = app;
+module.exports = async (req, res) => {
+    try {
+        console.log('Vercel function invoked:', req.method, req.url);
+        return await handler(req, res);
+    } catch (err) {
+        console.error('Vercel handler error:', err && err.stack ? err.stack : err);
+        // Ensure a 500 is returned on unexpected errors
+        try {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'text/plain');
+            res.end('Internal Server Error');
+        } catch (e) {
+            // ignore
+        }
+    }
+};
