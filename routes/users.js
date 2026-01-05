@@ -1,189 +1,75 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const auth = require("../middleware/auth");
+
 const router = express.Router();
-const db = require("../config/db");
-const bcrypt = require("bcrypt");
-const verifyToken = require("../middleware/auth");
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined");
+}
 
 /**
- * @openapi
- * /api/users:
- *   get:
- *      tags: [Users]
- *      summary: Get all users
- *      responses:
- *        200:
- *          description: OK
- */
-router.get('/', verifyToken, async (req, res) => {
-    try {
-        const [rows] = await db.query('SELECT id, firstname, fullname, lastname FROM tbl_users');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Query failed' });
-    }
-});
-
-/**
- * @openapi
- * /api/users/{id}:
- *   get:
- *      tags: [Users]
- *      summary: Get user by id
- *      parameters:
- *        - in: path
- *          name: id
- *          required: true
- *          schema:
- *            type: integer
- *      responses:
- *        200:
- *          description: OK
- *        404:
- *          description: User not found
- */
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [rows] = await db.query('SELECT id, firstname, fullname, lastname FROM tbl_users WHERE id = ?', [id]);
-        if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: 'Query failed' });
-    }
-});
-
-/**
- * @openapi
- * /api/users:
+ * @swagger
+ * /api/users/login:
  *   post:
- *      tags: [Users]
- *      summary: Create a new user
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                firstname:
- *                  type: string
- *                fullname:
- *                  type: string
- *                lastname:
- *                  type: string
- *                username:
- *                  type: string
- *                password:
- *                  type: string
- *                status:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
+ *     summary: Login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: JWT token
  */
-router.post('/', async (req, res) => {
-    const { firstname, fullname, lastname, username, password, status } = req.body;
-    try {
-        if (!password) return res.status(400).json({ error: 'Password is required' });
-        // เข้ารหัส password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const [result] = await db.query(
-            'INSERT INTO tbl_users (firstname, fullname, lastname, username, password, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [firstname, fullname, lastname, username, hashedPassword, status]
-        );
-        res.status(200).json({ id: result.insertId, firstname, fullname, lastname, username, password, status });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Insert failed' });
+router.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+
+    // ตัวอย่าง user mock
+    const user = {
+        id: 1,
+        username: "admin",
+        passwordHash: await bcrypt.hash("1234", 10),
+    };
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch || username !== user.username) {
+        return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    const token = jwt.sign(
+        { id: user.id, username: user.username },
+        JWT_SECRET,
+        { expiresIn: "1h" }
+    );
+
+    res.json({ token });
 });
 
 /**
- * @openapi
- * /api/users/{id}:
- *   put:
- *      tags: [Users]
- *      summary: Update user by id
- *      parameters:
- *        - in: path
- *          name: id
- *          required: true
- *          schema:
- *            type: integer
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                firstname:
- *                  type: string
- *                fullname:
- *                  type: string
- *                lastname:
- *                  type: string
- *                password:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- *        404:
- *          description: User not found
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get users (Protected)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
  */
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { firstname, fullname, lastname, password } = req.body;
-    try {
-        let query = 'UPDATE tbl_users SET firstname = ?, fullname = ?, lastname = ?';
-        const params = [firstname, fullname, lastname];
-        // ถ้ามี password ใหม่ให้ hash แล้วอัปเดตด้วย
-        if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            query += ', password = ?';
-            params.push(hashedPassword);
-        }
-        query += ' WHERE id = ?';
-        params.push(id);
-        const [result] = await db.query(query, params);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json({ message: 'User updated successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Update failed' });
-    }
-});
-
-/**
- * @openapi
- * /api/users/{id}:
- *   delete:
- *      tags: [Users]
- *      summary: Delete user by id
- *      parameters:
- *        - in: path
- *          name: id
- *          required: true
- *          schema:
- *            type: integer
- *      responses:
- *        200:
- *          description: OK
- *        404:
- *          description: User not found
- */
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [result] = await db.query('DELETE FROM tbl_users WHERE id = ?', [id]);
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
-        res.json({ message: 'User deleted successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Delete failed' });
-    }
+router.get("/", auth, (req, res) => {
+    res.json({
+        message: "Authorized ✅",
+        user: req.user,
+    });
 });
 
 module.exports = router;
