@@ -1,44 +1,40 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const swaggerUi = require("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
 
 const app = express();
 
-app.use(express.json());
-app.use(cors({
-    origin: "*",
-    allowedHeaders: ["Content-Type", "Authorization"],
-}));
+// ตรวจ JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET missing");
+}
 
-/* ROOT ROUTE (ห้ามลบ) */
+app.use(cors({ origin: "*", allowedHeaders: ["Content-Type", "Authorization"] }));
+app.use(express.json());
+
+// ROOT (จำเป็นสำหรับ Vercel)
 app.get("/", (req, res) => {
-    res.json({
+    res.status(200).json({
         status: "ok",
         message: "Backend API running on Vercel",
     });
 });
 
-/* ROUTES */
+// AUTH & USERS
+app.use("/api/auth", require("../routes/auth"));
 app.use("/api/users", require("../routes/users"));
 
-/* SWAGGER */
-const swaggerSpec = swaggerJsdoc({
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: "Backend API",
-            version: "1.0.0",
-        },
-        servers: [
-            {
-                url: "https://011-backend.vercel.app",
-            },
-        ],
-    },
-    apis: ["../routes/*.js"],
+// ตัวอย่าง ping
+app.get("/ping", (req, res) => res.json({ status: "ok" }));
+
+
+app.get("/", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        message: "Backend API running on Vercel",
+    });
 });
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 module.exports = app;
