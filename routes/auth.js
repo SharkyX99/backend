@@ -147,21 +147,33 @@ router.post("/login", async (req, res) => {
 
     // สร้าง Token (JWT)
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.status || "user" }, // Map status to role in token for consistency, or just use status
+      { id: user.id, username: user.username, status: user.status || "user" },
       JWT_SECRET,
       { expiresIn: "30d" },
     );
+
+    // Store token in active tokens map (Required by verifyToken middleware)
+    if (!globalThis.__activeTokens) {
+      globalThis.__activeTokens = new Map();
+    }
+    globalThis.__activeTokens.set(user.id, token);
 
     // ส่ง Token กลับไปให้ Frontend
     res.status(200).json({
       status: "ok",
       message: "ล็อกอินสำเร็จ",
       token: token,
-      role: user.status || "user", // Send status as role to frontend to keep frontend logic compatible, or change frontend to expect status
-      username: user.username,
-      // ส่ง info อื่นๆ ไปด้วยก็ได้
-      firstname: user.firstname,
-      lastname: user.lastname,
+      userStatus: user.status || "user", // Renamed key to userStatus or just kept as status in the user object
+      // But wait, the previous code had a 'status' key for the response status ("ok").
+      // Let's use a clear key for user status.
+      // actually, let's just properly structure the data object
+      data: {
+        token: token,
+        status: user.status || "user",
+        username: user.username,
+        firstname: user.firstname,
+        lastname: user.lastname,
+      },
     });
   } catch (error) {
     console.error("Login Error:", error);
