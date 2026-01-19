@@ -49,9 +49,6 @@ app.get("/ping", async (req, res) => {
 const homeRouter = require("./routes/home");
 app.use("/", homeRouter);
 
-
-
-
 /**
  * @openapi
  * /logout:
@@ -701,7 +698,7 @@ app.get("/api-docs", (req, res) => {
           </div>
           <div style="padding:10px;background:rgba(11,116,255,0.08);border-left:3px solid var(--brand);border-radius:6px">
             <div style="color:var(--brand);font-weight:600;margin-bottom:4px">🌐 Production Server</div>
-            <code style="background:rgba(11,116,255,0.15);color:var(--brand);padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block">https://013-backend.vercel.app</code>
+            <code style="background:rgba(11,116,255,0.15);color:var(--brand);padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block">https://011-backend.vercel.app</code>
           </div>
         </div>
       </div>
@@ -895,7 +892,7 @@ app.use("/users", usersRouter);
 
 const authRoute = require("./routes/auth");
 
-app.use('/', authRoute);
+app.use("/", authRoute);
 
 // Start server only when this file is executed directly (not when required)
 const PORT = process.env.PORT || 3000;
