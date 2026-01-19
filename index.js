@@ -895,7 +895,7 @@ app.use("/users", usersRouter);
 
 const authRoute = require("./routes/auth");
 
-app.use('/api', authRoute);
+app.use('/', authRoute);
 
 // Start server only when this file is executed directly (not when required)
 const PORT = process.env.PORT || 3000;
