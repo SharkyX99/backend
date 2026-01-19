@@ -148,7 +148,7 @@ router.post("/login", async (req, res) => {
     // สร้าง Token (JWT)
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role || "user" },
-      { expiresIn: "1d" }, // Token หมดอายุใน 1 วัน
+      { expiresIn: "30d" }, // Token หมดอายุใน 30 วัน
     );
 
     // ส่ง Token กลับไปให้ Frontend
