@@ -147,9 +147,9 @@ router.post("/login", async (req, res) => {
 
     // สร้าง Token (JWT)
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role || "user" },
+      { id: user.id, username: user.username, role: user.status || "user" }, // Map status to role in token for consistency, or just use status
       JWT_SECRET,
-      { expiresIn: "30d" }, // Token หมดอายุใน 30 วัน
+      { expiresIn: "30d" },
     );
 
     // ส่ง Token กลับไปให้ Frontend
@@ -157,7 +157,7 @@ router.post("/login", async (req, res) => {
       status: "ok",
       message: "ล็อกอินสำเร็จ",
       token: token,
-      role: user.role || "user",
+      role: user.status || "user", // Send status as role to frontend to keep frontend logic compatible, or change frontend to expect status
       username: user.username,
       // ส่ง info อื่นๆ ไปด้วยก็ได้
       firstname: user.firstname,
