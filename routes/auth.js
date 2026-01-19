@@ -9,49 +9,7 @@ const pool = require("../config/db"); // เรียกใช้ Database ท�
 const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key_1234";
 
 // 1. เส้นทางสมัครสมาชิก (POST /register)
-/**
- * @openapi
- * /register:
- *   post:
- *     tags: [Authentication]
- *     summary: Register a new user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *               - firstname
- *               - lastname
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *               firstname:
- *                 type: string
- *               lastname:
- *                 type: string
- *               fullname:
- *                 type: string
- *               address:
- *                 type: string
- *               sex:
- *                 type: string
- *               birthday:
- *                 type: string
- *                 format: date
- *     responses:
- *       201:
- *         description: User registered successfully
- *       400:
- *         description: Missing required fields or username exists
- *       500:
- *         description: Server error
- */
+
 router.post("/register", async (req, res) => {
   try {
     const {
@@ -106,12 +64,10 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ status: "ok", message: "สมัครสมาชิกสำเร็จ" });
   } catch (error) {
     console.error("Register Error:", error);
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: " + error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: " + error.message,
+    });
   }
 });
 

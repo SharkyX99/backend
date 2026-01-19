@@ -88,7 +88,7 @@ function generateSpec(lang = "en") {
     "/",
     "/ping",
     "/login",
-    "/register",
+
     "/logout",
     "/api/users",
     "/api/users/{id}",
