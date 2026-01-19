@@ -50,45 +50,7 @@ const homeRouter = require("./routes/home");
 app.use("/", homeRouter);
 
 
-/**
- * @openapi
- * /login:
- *   post:
- *     tags: [Authentication]
- *     summary: User login
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Login'
- *     responses:
- *       200:
- *         description: Login successful
- */
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username) return res.status(400).json({ error: "username is required" });
 
-  try {
-    const [rows] = await db.query(
-      "SELECT id, fullname, lastname, password FROM tbl_users WHERE username = ?",
-      [username]
-    );
-    const user = (rows && rows[0]) || null;
-    if (!user) return res.status(401).json({ error: "User not found" });
-
-    const ok = await bcrypt.compare(password || "", user.password || "");
-    if (!ok) return res.status(401).json({ error: "Invalid password" });
-
-    const token = jwt.sign({ id: user.id }, SECRET_KEY || "secret", { expiresIn: "1h" });
-    globalThis.__activeTokens.set(user.id, token);
-    res.json({ token, message: "Login successful" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Login failed" });
-  }
-});
 
 /**
  * @openapi

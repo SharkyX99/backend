@@ -3,7 +3,7 @@ const { config: loadEnv } = require("dotenv");
 
 const envPath =
     process.env.DOTENV_CONFIG_PATH ??
-    (process.env.NODE_ENV === "production" ? ".env.production" : ".env.local");
+    (process.env.NODE_ENV === "production" ? ".env.production" : ".env");
 
 loadEnv({ path: envPath, override: false });
 

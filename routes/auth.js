@@ -11,15 +11,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'my_super_secret_key_1234';
 // 1. เส้นทางสมัครสมาชิก (POST /register)
 router.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, firstname, lastname, fullname, address, sex, birthday } = req.body;
 
-        // เช็คว่าส่งข้อมูลมาครบไหม
-        if (!username || !password) {
-            return res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+        // เช็คว่าส่งข้อมูลมาครบไหม (Simple validation)
+        if (!username || !password || !firstname || !lastname) {
+            return res.status(400).json({ message: 'กรุณากรอกข้อมูลสำคัญให้ครบถ้วน' });
         }
 
         // เช็คว่ามี Username นี้อยู่แล้วหรือยัง?
-        const [existingUsers] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
+        // ใช้ tbl_users แทน users
+        const [existingUsers] = await pool.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
         if (existingUsers.length > 0) {
             return res.status(400).json({ message: 'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว' });
         }
@@ -28,17 +29,19 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // บันทึกลง Database
+        // บันทึกลง Database (เพิ่ม field อิ่นๆ ให้ครบ)
+        // role default อาจจะไม่มีใน schema tbl_users ถ้ามีก็ใส่ ถ้าไม่มีก็ข้าม หรือเพิ่ม column
+        // สมมติ tbl_users ไม่ได้บังคับ role หรือมี default value
         await pool.query(
-            'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-            [username, hashedPassword, 'user'] // กำหนด role เริ่มต้นเป็น 'user'
+            'INSERT INTO tbl_users (username, password, firstname, lastname, fullname, address, sex, birthday) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [username, hashedPassword, firstname, lastname, fullname, address, sex, birthday]
         );
 
         res.status(201).json({ status: 'ok', message: 'สมัครสมาชิกสำเร็จ' });
 
     } catch (error) {
         console.error('Register Error:', error);
-        res.status(500).json({ status: 'error', message: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
+        res.status(500).json({ status: 'error', message: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์: ' + error.message });
     }
 });
 
@@ -47,8 +50,8 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // ค้นหา User ใน Database
-        const [users] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
+        // ค้นหา User ใน Database (tbl_users)
+        const [users] = await pool.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
         const user = users[0];
 
         // ถ้าหาไม่เจอ หรือ รหัสผ่านไม่ถูกต้อง
@@ -64,7 +67,7 @@ router.post('/login', async (req, res) => {
 
         // สร้าง Token (JWT)
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.role },
+            { id: user.id, username: user.username, role: user.role || 'user' },
             JWT_SECRET,
             { expiresIn: '1h' } // Token หมดอายุใน 1 ชั่วโมง
         );
@@ -74,8 +77,11 @@ router.post('/login', async (req, res) => {
             status: 'ok',
             message: 'ล็อกอินสำเร็จ',
             token: token,
-            role: user.role,
-            username: user.username
+            role: user.role || 'user',
+            username: user.username,
+            // ส่ง info อื่นๆ ไปด้วยก็ได้
+            firstname: user.firstname,
+            lastname: user.lastname
         });
 
     } catch (error) {
